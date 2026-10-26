@@ -1,0 +1,88 @@
+<Window x:Class="SeamlessPuzzle.Views.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="clr-namespace:SeamlessPuzzle.Views"
+ xmlns:viewModels="clr-namespace:SeamlessPuzzle.ViewModels"
+ Title="无缝拼图 · 轻图联动版" Icon="/Assets/Icons/app.ico" Width="640" Height="500" MinWidth="560" MinHeight="420"
+ WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBackground}"
+ FontFamily="Microsoft YaHei UI" FontSize="12" Topmost="True">
+ <Window.DataContext><viewModels:MainViewModel/></Window.DataContext>
+ <Window.Resources>
+  <Style x:Key="SettingsContextMenuStyle" TargetType="ContextMenu"/>
+  <Style TargetType="Button">
+   <Setter Property="Padding" Value="10,5"/><Setter Property="Margin" Value="0,0,6,0"/>
+   <Setter Property="MinHeight" Value="30"/><Setter Property="Background" Value="{DynamicResource ControlBackground}"/>
+   <Setter Property="Foreground" Value="{DynamicResource TextColor}"/>
+   <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+  </Style>
+  <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource TextColor}"/></Style>
+ </Window.Resources>
+ <Grid Margin="12">
+  <Grid.RowDefinitions><RowDefinition Height="30"/><RowDefinition Height="40"/><RowDefinition Height="*"/><RowDefinition Height="40"/></Grid.RowDefinitions>
+  <DockPanel Grid.Row="0" LastChildFill="True">
+   <CheckBox x:Name="PinToggle" Content="置顶" DockPanel.Dock="Right" IsChecked="True" VerticalAlignment="Center"
+    Checked="PinToggle_Changed" Unchecked="PinToggle_Changed"/>
+   <TextBlock Text="无缝拼图" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+  </DockPanel>
+  <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
+   <Button Content="读取剪贴板" Click="ReadClipboard_Click" Background="#2463DD" Foreground="White" ToolTip="读取图片或复制的图片文件，追加到列表；也可按 Ctrl+V"/>
+   <Button Content="添加图片…" Click="AddFiles_Click"/>
+   <Button Content="撤销" Command="{Binding UndoCommand}"/>
+   <Button Content="清空" Command="{Binding RemoveAllCommand}"/>
+  </StackPanel>
+  <Grid Grid.Row="2" Margin="0,5,0,0">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="185"/><ColumnDefinition Width="8"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Grid Grid.Column="0">
+    <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="76"/><RowDefinition Height="24"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <Border Grid.Row="0" BorderThickness="1" BorderBrush="{DynamicResource DropAreaBorder}" Background="{DynamicResource DropAreaBackground}" CornerRadius="6"
+     AllowDrop="True" PreviewDragOver="ImageDropPreviewDragOver" Drop="ImageDrop" PreviewKeyDown="ImageDropPreviewKeyDown">
+     <StackPanel VerticalAlignment="Center"><TextBlock Text="拖入多张图片" HorizontalAlignment="Center"/>
+      <TextBlock Text="或点击读取剪贴板 / Ctrl+V" FontSize="10" Foreground="Gray" HorizontalAlignment="Center" Margin="0,3,0,0"/></StackPanel>
+    </Border>
+    <UniformGrid Grid.Row="1" Rows="2" Columns="2" Margin="0,6,0,0">
+     <Button Content="横向拼接" Command="{Binding HorizontalPuzzleCommand}" Margin="0,0,3,3" Padding="4,3"/>
+     <Button Content="竖向拼接" Command="{Binding VerticalPuzzleCommand}" Margin="3,0,0,3" Padding="4,3"/>
+     <Button Content="四宫格" Command="{Binding Grid4PuzzleCommand}" Margin="0,3,3,0" Padding="4,3"/>
+     <Button Content="九宫格" Command="{Binding Grid9PuzzleCommand}" Margin="3,3,0,0" Padding="4,3"/>
+    </UniformGrid>
+    <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="{Binding Images.Count, StringFormat=已添加 {0} 张 · 可拖动排序}" FontSize="11"/>
+    <ListBox x:Name="ImageQueue" Grid.Row="3" ItemsSource="{Binding Images}" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+     PreviewMouseLeftButtonDown="ImageListItemPreviewMouseLeftButtonDown" PreviewMouseMove="ImageListItemPreviewMouseMove"
+     Drop="ImageListItemDrop" AllowDrop="True" DragEnter="ImageListItemDragEnter">
+     <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="2"/></Style></ListBox.ItemContainerStyle>
+     <ListBox.ItemTemplate><DataTemplate>
+      <Grid Margin="0,2"><Grid.ColumnDefinitions><ColumnDefinition Width="68"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
+       <Border Grid.Column="0" Width="64" Height="56" Background="#E8EDF4">
+        <Image Stretch="Uniform" Source="{Binding Thumbnail}">
+         <Image.ToolTip><StackPanel><Image Source="{Binding Thumbnail}" Width="180" Height="140" Stretch="Uniform"/><TextBlock Text="{Binding FileName}"/><TextBlock Text="{Binding Dimensions}"/></StackPanel></Image.ToolTip>
+        </Image>
+       </Border>
+       <StackPanel Grid.Column="1" Margin="5,0" VerticalAlignment="Center">
+        <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" ToolTip="{Binding FileName}" FontSize="11"/>
+        <TextBlock Text="{Binding Dimensions}" FontSize="10" Foreground="Gray" Margin="0,3,0,0"/>
+       </StackPanel>
+       <CheckBox Grid.Column="2" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" ToolTip="参与拼接"/>
+      </Grid>
+     </DataTemplate></ListBox.ItemTemplate>
+    </ListBox>
+   </Grid>
+   <Border Grid.Column="2" BorderThickness="1" BorderBrush="{DynamicResource BorderColor}" CornerRadius="6" Padding="6" Background="{DynamicResource PanelBackground}">
+    <Grid><Grid.RowDefinitions><RowDefinition Height="24"/><RowDefinition Height="*"/><RowDefinition Height="23"/></Grid.RowDefinitions>
+     <TextBlock Grid.Row="0" Text="拼图预览" FontWeight="SemiBold"/>
+     <ScrollViewer x:Name="PreviewScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PreviewMouseWheel="PreviewImageScroll">
+      <Grid x:Name="PreviewImageGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+       <Image x:Name="PreviewImage" Source="{Binding PreviewImage}" Stretch="None"/>
+      </Grid>
+     </ScrollViewer>
+     <TextBlock Grid.Row="2" Text="Ctrl+滚轮缩放；保存使用原始清晰度" FontSize="10" Foreground="Gray" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+    </Grid>
+   </Border>
+  </Grid>
+  <DockPanel Grid.Row="3" VerticalAlignment="Center">
+   <Button Content="保存拼图…" Command="{Binding SaveCommand}" DockPanel.Dock="Right" Margin="6,0,0,0" MinWidth="96"/>
+   <Button Content="压缩并发送到表格" Click="InsertCell_Click" DockPanel.Dock="Right" Margin="6,0,0,0" Background="#2463DD" Foreground="White" ToolTip="先在目标格单击；按轻图所选模式，插入桌面 WPS 或自动切回 Edge 粘贴"/>
+   <ProgressBar DockPanel.Dock="Right" Width="55" Height="5" Value="{Binding Progress}" Margin="6,0" IsIndeterminate="{Binding IsProcessing}"/>
+   <TextBlock x:Name="CompactStatus" Text="{Binding StatusText}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusText}"/>
+  </DockPanel>
+ </Grid>
+</Window>
