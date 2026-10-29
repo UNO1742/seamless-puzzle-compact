@@ -6,6 +6,8 @@
 
 **[下载 Windows 版本](https://github.com/UNO1742/seamless-puzzle-compact/releases/latest)** · [配套轻图](https://github.com/UNO1742/clipslim)
 
+当前版本 **1.3.1**：修复“无法切回 Edge，未发送”，Windows 下载包附带轻图 **1.7.2**。详见 [更新记录](CHANGELOG.md)。
+
 ## 功能
 
 - 横向、竖向、四宫格和九宫格拼图。
@@ -19,7 +21,7 @@
 
 下载发布 ZIP，完整解压，运行 **启动无缝拼图.exe**；启动器会创建或更新桌面“无缝拼图”快捷方式。普通拼图功能不需要轻图。
 
-表格联动需要根目录中的 `ClipSlim-v1.7.1.exe`。带轻图的发布包已附带；自行构建时可从[轻图发布页](https://github.com/UNO1742/clipslim/releases/latest)下载后放入，或构建时使用 `-ClipSlimExe` 参数。
+表格联动需要根目录中的 `ClipSlim-v1.7.2.exe`。带轻图的发布包已附带；自行构建时可从[轻图发布页](https://github.com/UNO1742/clipslim/releases/latest)下载后放入，或构建时使用 `-ClipSlimExe` 参数。
 
 在轻图中选择目标模式和压缩参数，再使用拼图按钮：
 
@@ -27,6 +29,18 @@
 - **金山在线表格**：首次在 Edge 中设置 **插入 → 图片 → 从外部粘贴图片时 → 默认为单元格图片**；在网页点选目标格并停留约一秒，再点击拼图按钮。轻图会核对目标、切回网页并自动粘贴，保持 Edge 的最大化或全屏状态。
 
 在线“已发送”表示粘贴请求发出，网页上传结果需在表格中确认；最终存储体积由金山文档决定。无法识别目标或焦点时会停止自动操作并提示。
+
+### 恢复已保存的未发送拼图
+
+更新不会自动迁移旧进程中尚未保存的图片队列，请先保存再关闭旧窗口。若已有完整拼图 PNG，可显式恢复为一张图片：
+
+```powershell
+$image = 'C:\path\to\unsent-collage.png'
+$encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($image))
+& '.\启动无缝拼图.exe' --recover $encoded
+```
+
+该入口仅加载指定文件；普通启动不自动读取历史图片。若修复版已打开，请先保存并关闭该窗口再使用恢复入口。
 
 ## 从源码构建
 
@@ -37,7 +51,7 @@
 ./build.ps1
 
 # 同时放入配套轻图
-./build.ps1 -ClipSlimExe C:\path\to\ClipSlim-v1.7.1.exe
+./build.ps1 -ClipSlimExe C:\path\to\ClipSlim-v1.7.2.exe
 
 # 较小的依赖运行时版本：接收端需要 .NET 8 Desktop Runtime x64
 ./build.ps1 -FrameworkDependent

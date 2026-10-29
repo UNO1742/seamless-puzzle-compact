@@ -25,6 +25,20 @@ namespace SeamlessPuzzle.Views
         public MainWindow()
         {
             InitializeComponent();
+            Loaded += delegate
+            {
+                // An updater may recover the last unsent full-resolution collage without
+                // closing or modifying the image queue in the previous application window.
+                string[] args = Environment.GetCommandLineArgs();
+                if (args.Length != 3 || args[1] != "--recover") return;
+                try
+                {
+                    string file = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(args[2]));
+                    if (File.Exists(file) && DataContext is MainViewModel recoveryViewModel)
+                        recoveryViewModel.LoadImageFiles(new[] { file });
+                }
+                catch { /* Invalid recovery requests do not prevent normal startup. */ }
+            };
             if (DataContext is MainViewModel initialViewModel) initialViewModel.PropertyChanged += ViewModel_PropertyChanged;
             try { if (File.Exists(_uiSettingsPath)) PinToggle.IsChecked = File.ReadAllText(_uiSettingsPath).Trim() != "false"; } catch { }
             _loadingUiSettings = false;

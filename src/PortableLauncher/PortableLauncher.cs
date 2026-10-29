@@ -8,7 +8,7 @@ internal static class PortableLauncher
     [DllImport("user32.dll")] static extern bool ShowWindowAsync(IntPtr window, int command);
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr window);
     [STAThread]
-    static void Main()
+    static void Main(string[] args)
     {
         try
         {
@@ -42,6 +42,12 @@ internal static class PortableLauncher
                 finally { existing.Dispose(); }
             }
             ProcessStartInfo start = new ProcessStartInfo(application);
+            if (args.Length == 2 && args[0] == "--recover")
+            {
+                // Validate before forwarding the whitespace-free base64 path argument.
+                Convert.FromBase64String(args[1]);
+                start.Arguments = "--recover " + args[1];
+            }
             start.WorkingDirectory = Path.GetDirectoryName(application);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
